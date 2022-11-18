@@ -4,20 +4,6 @@
 #include <vector>
 #include <iostream>
 
-/*
-    Rules:
-        1. Start with a deck of n cards of unique rank (no two cards are equal)
-        2. Two cards are dealt to each player
-        3. Both players play a card at the same time. The player who played the lower card wins half a point.
-        4. Repeat step 3 with the other card.
-
-    Each game has one random step (dealing the cards) and one strategy step (both players make one decision at the same time)
-    The strategy step has four options (both players have a binary option: pick their high card or pick their low card)
-    Possible outcomes are -1, 0, and 1.
-*/
-
-// Try different rules (player 0 goes first?)
-
 #define DECK_SIZE 4
 #define ITERATIONS 10000
 
@@ -99,7 +85,7 @@ int main(int argc, char* argv[]) {
     bool random = argc > 3 && std::string(argv[3]) == "RANDOM";
     double probability = 4.0 / (double)(deckSize * (deckSize - 1) * (deckSize - 2) * (deckSize - 3));
 
-    // 'strategies' object consists of keys (card0, card1) and values ((player0 strategy, player 0 regret), (player0 revealed card: player 1 strategy, player 1 regret))
+    // 'strategies' object consists of keys (card0, card1) and values ((player0 strategy, player 0 ev), (player0 revealed card: player 1 strategy, player 1 ev))
     std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies;
     __init__(strategies, deckSize, random);
 
@@ -110,12 +96,12 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < iterations; i++) {
-        cfr(strategies, probability);
         double expVal = 0;
         if (i % (iterations / 10) == 0) {
             expectedValue(strategies, probability, expVal);
             printf("Expected value (iteration %d): %.3f\n", i, expVal);
         }
+        cfr(strategies, probability);
     }
 
     double expVal = 0;
