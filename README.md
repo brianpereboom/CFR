@@ -11,7 +11,7 @@
   ##### Possible outcomes are -1, 0, and 1.
   
 # Installation:
-  ### `g++ -O3 cfr.cpp -o cfr`
+  ### `g++ cfr.cpp -o cfr -O3`
   ### `./cfr [DECK_SIZE] [ITERATIONS] RANDOM`
   
   ### If you want to use default values, else include "RANDOM" to randomize the initial strategy
