@@ -13,4 +13,4 @@
 # Installation:
   ##### `g++ cfr.cpp -o cfr -O3`
   ##### `./cfr [DECK_SIZE] [ITERATIONS] RANDOM`
-  ##### Include "RANDOM" if you do not want to use a default initial strategy.
+  ##### Include `RANDOM` if you do not want to use a default initial strategy.
