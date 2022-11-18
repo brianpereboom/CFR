@@ -14,4 +14,4 @@
   ##### `g++ cfr.cpp -o cfr -O3`
   ##### `./cfr [DECK_SIZE] [ITERATIONS] RANDOM`
   
-  ### If you want to use default values, else include "RANDOM" to randomize the initial strategy
+  ### Include "RANDOM" if you do not want to use a default initial strategy.
