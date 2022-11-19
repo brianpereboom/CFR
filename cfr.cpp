@@ -89,12 +89,6 @@ int main(int argc, char* argv[]) {
     std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies;
     __init__(strategies, deckSize, random);
 
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
-        printf("[%d, %d]: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, 100 * i->second.first.first, 100 * (1.0 - i->second.first.first));
-        for (std::map<int, std::pair<double, double>>::iterator j = i->second.second.begin(); j != i->second.second.end(); j++)
-            printf("[%d, %d], %d: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, j->first, 100 * j->second.first, 100 * (1.0 - j->second.first));
-    }
-
     for (int i = 0; i < iterations; i++) {
         double expVal = 0;
         if (i % (iterations / 10) == 0) {
