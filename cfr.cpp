@@ -3,18 +3,19 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
-#define DECK_SIZE 4
+#define CARDS 4
 #define ITERATIONS 10000
 
-void __init__(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies, const int deckSize, const bool random) {
+void __init__(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies, const int cards, const bool random) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
-    for (int i = 0; i < deckSize; i++) {
-        for (int j = i + 1; j < deckSize; j++) {
+    for (int i = 0; i < cards; i++) {
+        for (int j = i + 1; j < cards; j++) {
             strategies[{i, j}] = std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>(std::pair<double, double>(random ? dis(gen) : 0.5, 0.0), std::map<int, std::pair<double, double>>());
-            for (int k = 0; k < deckSize; k++) {
+            for (int k = 0; k < cards; k++) {
                 if (k != i && k != j)
                     strategies[{i, j}].second[k] = std::pair<double, double>(random ? dis(gen) : 1.0, 0.0);
             }
@@ -79,15 +80,50 @@ void expectedValue(std::map<std::pair<int, int>, std::pair<std::pair<double, dou
     expVal *= probability;
 }
 
+void exportData(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies, const int cards, const int iterations, const double probability) {
+    double expVal = 0;
+    expectedValue(strategies, probability, expVal);
+    std::ofstream out("Strategy.csv");
+    out << "Cards:," << cards << std::endl;
+    out << "Iterations:," << iterations << std::endl;
+    out.precision(3);
+    out << "Expected value:," << expVal << std::endl;
+    out << std::endl;
+    out << ",,,Revealed Card" << std::endl;
+    out << "Card 0,Card 1,,None,";
+    for (int i = 0; i < cards; i++) {
+        out << "," << i;
+    }
+    out << std::endl;
+    out << std::fixed;
+    printf("Expected value: %.3f\n", expVal);
+    out.precision(1);
+    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
+        printf("[%d, %d]: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, 100 * i->second.first.first, 100 * (1.0 - i->second.first.first));
+        out << i->first.first << "," << i->first.second << ",," << 100 * i->second.first.first << "%,";
+        int it = 0;
+        for (std::map<int, std::pair<double, double>>::iterator j = i->second.second.begin(); j != i->second.second.end(); j++) {
+            printf("[%d, %d], %d: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, j->first, 100 * j->second.first, 100 * (1.0 - j->second.first));
+            while (it != j->first) {
+                out << ",";
+                it++;
+            }
+            out << "," << 100 * j->second.first << "%";
+            it++;
+        }
+        out << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
-    int deckSize = (argc > 1) ? std::atoi(argv[1]) : DECK_SIZE;
+    int cards = (argc > 1) ? std::atoi(argv[1]) : CARDS;
     int iterations = (argc > 2) ? std::atoi(argv[2]) : ITERATIONS;
     bool random = argc > 3 && std::string(argv[3]) == "RANDOM";
-    double probability = 4.0 / (double)(deckSize * (deckSize - 1) * (deckSize - 2) * (deckSize - 3));
+    double probability = 4.0 / (double)(cards * (cards - 1) * (cards - 2) * (cards - 3));
 
     // 'strategies' object consists of keys (card0, card1) and values ((player0 strategy, player 0 ev), (player0 revealed card: player 1 strategy, player 1 ev))
     std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies;
-    __init__(strategies, deckSize, random);
+    __init__(strategies, cards, random);
 
     for (int i = 0; i < iterations; i++) {
         double expVal = 0;
@@ -98,13 +134,5 @@ int main(int argc, char* argv[]) {
         cfr(strategies, probability);
     }
 
-    double expVal = 0;
-    expectedValue(strategies, probability, expVal);
-    printf("Expected value: %.3f\n", expVal);
-
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
-        printf("[%d, %d]: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, 100 * i->second.first.first, 100 * (1.0 - i->second.first.first));
-        for (std::map<int, std::pair<double, double>>::iterator j = i->second.second.begin(); j != i->second.second.end(); j++)
-            printf("[%d, %d], %d: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, j->first, 100 * j->second.first, 100 * (1.0 - j->second.first));
-    }
+    exportData(strategies, cards, iterations, probability);
 }
