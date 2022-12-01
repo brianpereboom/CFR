@@ -8,13 +8,17 @@
 #define CARDS 4
 #define ITERATIONS 10000
 
-void __init__(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies, const int cards, const bool random) {
+void __init__(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies,
+    const int cards, const bool random)
+{
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
     for (int i = 0; i < cards; i++) {
         for (int j = i + 1; j < cards; j++) {
-            strategies[{i, j}] = std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>(std::pair<double, double>(random ? dis(gen) : 0.5, 0.0), std::map<int, std::pair<double, double>>());
+            strategies[{i, j}] = std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>(
+                std::pair<double, double>(random ? dis(gen) : 0.5, 0.0), std::map<int, std::pair<double, double>>()
+            );
             for (int k = 0; k < cards; k++) {
                 if (k != i && k != j)
                     strategies[{i, j}].second[k] = std::pair<double, double>(random ? dis(gen) : 1.0, 0.0);
@@ -27,7 +31,9 @@ int terminal_node(const int a0, const int a1, const int b0, const int b1) {
     return (((a0 < b0) ? 1 : -1) + ((a1 < b1) ? 1 : -1)) >> 1;
 }
 
-double node1(const int hand0Card0, const int hand0Card1, const int hand1Card0, const int hand1Card1, std::pair<double, double>& strategy, const double probability) {
+double node1(const int hand0Card0, const int hand0Card1, const int hand1Card0, const int hand1Card1, std::pair<double, double>& strategy,
+    const double probability)
+{
     strategy.second += (
         strategy.first * terminal_node(hand0Card0, hand0Card1, hand1Card0, hand1Card1) -
         (1.0 - strategy.first) * terminal_node(hand0Card0, hand0Card1, hand1Card1, hand1Card0)
@@ -43,27 +49,31 @@ void node0(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, st
         node1(hand0->first.second, hand0->first.first, hand1->first.first, hand1->first.second, hand1->second.second[hand0->first.second], 1.0 - hand0->second.first.first);
 }
 
-void cfr(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies, const double probability) {
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
-        for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator j = strategies.begin(); j != strategies.end(); j++) {
+void cfr(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies,
+    const double probability)
+{
+    for (auto i = strategies.begin(); i != strategies.end(); i++) {
+        for (auto j = strategies.begin(); j != strategies.end(); j++) {
             if (i->first.first != j->first.first && i->first.first != j->first.second && i->first.second != j->first.first && i->first.second != j->first.second) {
                 node0(i, j);
             }
         }
     }
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
+    for (auto i = strategies.begin(); i != strategies.end(); i++) {
         i->second.first.first = std::min(1.0, std::max(0.0, i->second.first.first + i->second.first.second * probability));
         i->second.first.second = 0.0;
-        for (std::map<int, std::pair<double, double>>::iterator j = i->second.second.begin(); j != i->second.second.end(); j++) {
+        for (auto j = i->second.second.begin(); j != i->second.second.end(); j++) {
             j->second.first = std::min(1.0, std::max(0.0, j->second.first - j->second.second * probability));
             j->second.second = 0.0;
         }
     }
 }
 
-void expectedValue(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies, const double probability, double& expVal) {
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
-        for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator j = strategies.begin(); j != strategies.end(); j++) {
+void expectedValue(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>& strategies,
+    const double probability, double& expVal)
+{
+    for (auto i = strategies.begin(); i != strategies.end(); i++) {
+        for (auto j = strategies.begin(); j != strategies.end(); j++) {
             if (i->first.first != j->first.first && i->first.first != j->first.second && i->first.second != j->first.first && i->first.second != j->first.second) {
                 expVal +=
                     i->second.first.first * (
@@ -80,7 +90,9 @@ void expectedValue(std::map<std::pair<int, int>, std::pair<std::pair<double, dou
     expVal *= probability;
 }
 
-void exportData(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies, const int cards, const int iterations, const double probability) {
+void exportData(std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>> strategies,
+    const int cards, const int iterations, const double probability)
+{
     double expVal = 0;
     expectedValue(strategies, probability, expVal);
     std::ofstream out("Strategy.csv");
@@ -98,11 +110,11 @@ void exportData(std::map<std::pair<int, int>, std::pair<std::pair<double, double
     out << std::fixed;
     printf("Expected value: %.3f\n", expVal);
     out.precision(1);
-    for (std::map<std::pair<int, int>, std::pair<std::pair<double, double>, std::map<int, std::pair<double, double>>>>::iterator i = strategies.begin(); i != strategies.end(); i++) {
+    for (auto i = strategies.begin(); i != strategies.end(); i++) {
         printf("[%d, %d]: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, 100 * i->second.first.first, 100 * (1.0 - i->second.first.first));
         out << i->first.first << "," << i->first.second << ",," << 100 * i->second.first.first << "%,";
         int it = 0;
-        for (std::map<int, std::pair<double, double>>::iterator j = i->second.second.begin(); j != i->second.second.end(); j++) {
+        for (auto j = i->second.second.begin(); j != i->second.second.end(); j++) {
             printf("[%d, %d], %d: [%.1f%%, %.1f%%]\n", i->first.first, i->first.second, j->first, 100 * j->second.first, 100 * (1.0 - j->second.first));
             while (it != j->first) {
                 out << ",";
